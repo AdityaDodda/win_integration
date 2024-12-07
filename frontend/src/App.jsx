@@ -1,5 +1,4 @@
-// src/App.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import AdminDashboard from './components/AdminDashboard';
@@ -15,37 +14,28 @@ import BlogListing from './components/BlogListing';
 import CreateBlog from './components/CreateBlog';
 
 const App = () => {
-  const [userRole, setUserRole] = useState(null);
+  const [userRole, setUserRole] = useState(null);  // Keep track of user role in state
 
-  // Check local storage for userRole on page load
-  useEffect(() => {
-    const role = localStorage.getItem('userRole');
-    if (role) {
-      setUserRole(role);
-    }
-  }, []);
-
-  // Handle login by setting the user role and storing in localStorage
+  // Handle login by setting the user role in state
   const handleLogin = (role) => {
-    setUserRole(role);
-    localStorage.setItem('userRole', role);  // Store user role in localStorage
+    setUserRole(role);  // Set the role when login is successful
   };
 
-  // Handle logout by removing user role from localStorage
+  // Handle logout by clearing user role from state
   const handleLogout = () => {
-    setUserRole(null);
-    localStorage.removeItem('userRole');
+    setUserRole(null);  // Clear the user role when logging out
   };
 
   return (
     <Router>
-      <Navbar userRole={userRole} onLogout={handleLogout} /> {/* Pass logout function to Navbar */}
+      {/* Only render Navbar if the user is logged in */}
+      {userRole && <Navbar userRole={userRole} onLogout={handleLogout} />}
 
       <Routes>
-        {/* Login Route */}
+        {/* Login Route - Do not render Navbar here */}
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
 
-        {/* Admin Routes */}
+        {/* Admin Routes - Only accessible if userRole is 'admin' */}
         {userRole === 'admin' && (
           <>
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
@@ -55,7 +45,7 @@ const App = () => {
           </>
         )}
 
-        {/* Student Routes */}
+        {/* Student Routes - Only accessible if userRole is 'student' */}
         {userRole === 'student' && (
           <>
             <Route path="/student-dashboard" element={<StudentDashboard />} />
@@ -67,12 +57,10 @@ const App = () => {
           </>
         )}
 
-        {/* Default Route */}
+        {/* Default Route - Redirect to login if no userRole is set */}
         <Route
           path="*"
-          element={
-            userRole ? <Navigate to={`/${userRole}-dashboard`} /> : <Navigate to="/login" />
-          }
+          element={userRole ? <Navigate to={`/${userRole}-dashboard`} /> : <Navigate to="/login" />}
         />
       </Routes>
     </Router>
